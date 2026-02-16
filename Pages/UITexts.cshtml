@@ -1,0 +1,106 @@
+﻿@page
+@using DevExtreme.AspNet.Mvc
+@using SmachotMemories.Models
+@model SmachotMemories.Pages.UITextsModel
+@{
+}
+
+
+
+
+@(Html.DevExtreme().DataGrid<UIText>()
+    .ID("uiText")
+    .ElementAttr(new { @class = "dx-card wide-card" })
+    .DataSource(d => d.Mvc().Controller("UITexts")
+                    .LoadAction("Load")
+                    .UpdateAction("Update")
+                    .InsertAction("Insert")
+                    .DeleteAction("Delete")
+                    .Key("UITextID"))
+    .Editing(x => x.AllowAdding(true)
+                 .AllowDeleting(true)
+                 .AllowUpdating(true)
+                .Mode(GridEditMode.Popup))
+    .ShowBorders(false)
+    .FilterRow(f => f.Visible(true))
+    .FocusedRowEnabled(true)
+    .RemoteOperations(true)
+    .FocusedRowIndex(0)
+@* .ColumnAutoWidth(true) *@
+    .AllowColumnResizing(true)
+    .StateStoring(s => s.Enabled(true).StorageKey("uiText"))
+    .FilterRow(filterRow => filterRow
+    .Visible(true)
+    .ApplyFilter(GridApplyFilterMode.Auto)
+    )
+    .SearchPanel(searchPanel => searchPanel
+    .Visible(true)
+                   @* .Width(240) *@
+    .Placeholder("Search...")
+    ).HeaderFilter(headerFilter => headerFilter.Visible(true))
+    .Columns(columns =>
+    {
+        columns.AddFor(m => m.UITextID).AllowEditing(false);
+        columns.AddFor(m => m.Key);
+        columns.AddFor(m => m.Text.TextEn).HidingPriority(0);
+        columns.AddFor(m => m.Text.TextFr).HidingPriority(1);
+        columns.AddFor(m => m.Text.TextHe).HidingPriority(2);
+        columns.AddFor(m => m.Text.TextRu).HidingPriority(2);
+        columns.AddFor(m => m.Text.TextAr_XA).HidingPriority(2);
+    })
+@* .OnEditorPreparing("onEditorPreparing") *@
+    .Paging(p => p.PageSize(10))
+    .Pager(p => p
+        .ShowPageSizeSelector(true)
+        .AllowedPageSizes(new[] { 5, 10, 20 })
+        .ShowInfo(true)
+    )
+    .Toolbar(toolbar =>
+    {
+        toolbar.Items(items =>
+        {
+            items.Add()
+            .Name("searchPanel");
+            items.Add()
+       .Location(ToolbarItemLocation.After)
+       .Widget(w =>
+           w.Button()
+               .Icon("add") // Adds an 'Add' icon
+               .Text("Add New Row")
+               .OnClick("onAddRow") // JavaScript function to add a new row
+        );
+            items.Add()
+           .Location(ToolbarItemLocation.After)
+               .Widget(w =>
+                   w.Button()
+                    .Icon("export") // Optional: Adds an export icon
+                    .Text("Export")
+                        .OnClick("onExporting")
+                 );
+        });
+
+    })
+)
+
+<script>
+    function onExporting() {
+        var grid = DevExpress.ui.dxDataGrid.getInstance(document.getElementById('uiText'));
+        var workbook = new ExcelJS.Workbook();
+        var worksheet = workbook.addWorksheet('Main sheet');
+
+        DevExpress.excelExporter.exportDataGrid({
+            worksheet: worksheet,
+            component: grid
+        }).then(function () {
+            workbook.xlsx.writeBuffer().then(function (buffer) {
+                saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'DataGrid.xlsx');
+            });
+        });
+    }
+
+    function onAddRow() {
+        const dataGrid = $("#uiText").dxDataGrid("instance");
+        dataGrid.addRow();
+    }
+
+</script>

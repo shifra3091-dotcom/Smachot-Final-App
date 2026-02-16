@@ -1,0 +1,536 @@
+@page
+@using DevExtreme.AspNet.Mvc
+@using SmachotMemories.Models.Enums
+@model SmachotMemories.Pages.ExperimentsModel
+@{
+    ViewData["Title"] = "Experiments";
+}
+
+<h2 class="content-block">Experiments - Create New Entities</h2>
+
+<div class="content-block">
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @Model.SuccessMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @Model.ErrorMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+</div>
+
+<div class="content-block dx-card responsive-paddings">
+    <div class="row">
+        <!-- Create User Section -->
+        <div class="col-md-4">
+            <div class="dx-card p-3 mb-3">
+                <h4><i class="dx-icon-user"></i> Create New User</h4>
+                <hr />
+                <form method="post" asp-page-handler="CreateUser">
+                    <div class="mb-3">
+                        <label asp-for="UserInput.UserName" class="form-label">User Name *</label>
+                        @(Html.DevExtreme().TextBoxFor(m => m.UserInput.UserName)
+                            .Placeholder("Enter user name")
+                            .ShowClearButton(true))
+                        <span asp-validation-for="UserInput.UserName" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="UserInput.Email" class="form-label">Email</label>
+                        @(Html.DevExtreme().TextBoxFor(m => m.UserInput.Email)
+                            .Placeholder("Enter email address")
+                            .Mode(TextBoxMode.Email)
+                            .ShowClearButton(true))
+                        <span asp-validation-for="UserInput.Email" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Roles *</label>
+                        <div class="roles-checkboxes">
+                            @foreach (var role in Model.AvailableRoles)
+                            {
+                                <label class="role-checkbox">
+                                    <input type="checkbox" 
+                                           name="UserInput.SelectedRoles" 
+                                           value="@role" />
+                                    @role.ToString()
+                                </label>
+                            }
+                        </div>
+                        <span asp-validation-for="UserInput.SelectedRoles" class="text-danger"></span>
+                    </div>
+                    <div class="d-grid">
+                        @(Html.DevExtreme().Button()
+                            .Text("Create User")
+                            .Type(ButtonType.Success)
+                            .StylingMode(ButtonStylingMode.Contained)
+                            .Icon("save")
+                            .UseSubmitBehavior(true)
+                            .Width("100%"))
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Create Hall Section -->
+        <div class="col-md-4">
+            <div class="dx-card p-3 mb-3">
+                <h4><i class="dx-icon-home"></i> Create New Hall</h4>
+                <hr />
+                <form method="post" asp-page-handler="CreateHall">
+                    <div class="mb-3">
+                        <label asp-for="HallInput.Name" class="form-label">Hall Name *</label>
+                        @(Html.DevExtreme().TextBoxFor(m => m.HallInput.Name)
+                            .Placeholder("Enter hall name")
+                            .ShowClearButton(true))
+                        <span asp-validation-for="HallInput.Name" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="HallInput.OwnerUserId" class="form-label">Owner User *</label>
+                        @(Html.DevExtreme().SelectBoxFor(m => m.HallInput.OwnerUserId)
+                            .DataSource(Model.Users)
+                            .ValueExpr("Value")
+                            .DisplayExpr("Text")
+                            .Placeholder("Select owner user")
+                            .SearchEnabled(true))
+                        <span asp-validation-for="HallInput.OwnerUserId" class="text-danger"></span>
+                    </div>
+                    <div class="d-grid">
+                        @(Html.DevExtreme().Button()
+                            .Text("Create Hall")
+                            .Type(ButtonType.Success)
+                            .StylingMode(ButtonStylingMode.Contained)
+                            .Icon("save")
+                            .UseSubmitBehavior(true)
+                            .Width("100%"))
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Create Event Section -->
+        <div class="col-md-4">
+            <div class="dx-card p-3 mb-3">
+                <h4><i class="dx-icon-event"></i> Create New Event</h4>
+                <hr />
+                <form method="post" asp-page-handler="CreateEvent">
+                    <div class="mb-3">
+                        <label asp-for="EventInput.EventName" class="form-label">Event Name *</label>
+                        @(Html.DevExtreme().TextBoxFor(m => m.EventInput.EventName)
+                            .Placeholder("Enter event name")
+                            .ShowClearButton(true))
+                        <span asp-validation-for="EventInput.EventName" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="EventInput.EventStartDate" class="form-label">Start Date *</label>
+                        @(Html.DevExtreme().DateBoxFor(m => m.EventInput.EventStartDate)
+                            .Type(DateBoxType.DateTime)
+                            .DisplayFormat("yyyy-MM-dd HH:mm"))
+                        <span asp-validation-for="EventInput.EventStartDate" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="EventInput.EventEndDate" class="form-label">End Date *</label>
+                        @(Html.DevExtreme().DateBoxFor(m => m.EventInput.EventEndDate)
+                            .Type(DateBoxType.DateTime)
+                            .DisplayFormat("yyyy-MM-dd HH:mm"))
+                        <span asp-validation-for="EventInput.EventEndDate" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="EventInput.BackgroundImageUrl" class="form-label">Background Image URL</label>
+                        @(Html.DevExtreme().TextBoxFor(m => m.EventInput.BackgroundImageUrl)
+                            .Placeholder("Enter image URL")
+                            .ShowClearButton(true))
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="EventInput.OwnerUserId" class="form-label">Owner User *</label>
+                        @(Html.DevExtreme().SelectBoxFor(m => m.EventInput.OwnerUserId)
+                            .DataSource(Model.Users)
+                            .ValueExpr("Value")
+                            .DisplayExpr("Text")
+                            .Placeholder("Select owner user")
+                            .SearchEnabled(true))
+                        <span asp-validation-for="EventInput.OwnerUserId" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="EventInput.HallId" class="form-label">Hall *</label>
+                        @(Html.DevExtreme().SelectBoxFor(m => m.EventInput.HallId)
+                            .DataSource(Model.Halls)
+                            .ValueExpr("Value")
+                            .DisplayExpr("Text")
+                            .Placeholder("Select hall")
+                            .SearchEnabled(true))
+                        <span asp-validation-for="EventInput.HallId" class="text-danger"></span>
+                    </div>
+                    <div class="d-grid">
+                        @(Html.DevExtreme().Button()
+                            .Text("Create Event")
+                            .Type(ButtonType.Success)
+                            .StylingMode(ButtonStylingMode.Contained)
+                            .Icon("save")
+                            .UseSubmitBehavior(true)
+                            .Width("100%"))
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Golden Book Entry Section -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="dx-card p-3 mb-3 golden-book-card">
+                <h4><i class="dx-icon-comment"></i> Add Golden Book Entry</h4>
+                <hr />
+                <form method="post" asp-page-handler="CreateGoldenBookEntry">
+                    <div class="mb-3">
+                        <label asp-for="GoldenBookInput.EventId" class="form-label">Event *</label>
+                        @(Html.DevExtreme().SelectBoxFor(m => m.GoldenBookInput.EventId)
+                            .DataSource(Model.Events)
+                            .ValueExpr("Value")
+                            .DisplayExpr("Text")
+                            .Placeholder("Select event")
+                            .SearchEnabled(true))
+                        <span asp-validation-for="GoldenBookInput.EventId" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="GoldenBookInput.Content" class="form-label">Content *</label>
+                        @(Html.DevExtreme().TextAreaFor(m => m.GoldenBookInput.Content)
+                            .Placeholder("Enter your golden book message...")
+                            .Height(120)
+                            .MaxLength(2000))
+                        <span asp-validation-for="GoldenBookInput.Content" class="text-danger"></span>
+                    </div>
+                    <div class="d-grid">
+                        @(Html.DevExtreme().Button()
+                            .Text("Add Golden Book Entry")
+                            .Type(ButtonType.Success)
+                            .StylingMode(ButtonStylingMode.Contained)
+                            .Icon("save")
+                            .UseSubmitBehavior(true)
+                            .Width("100%"))
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Media Section - Full Width Row -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="dx-card p-3 mb-3 media-upload-card">
+                <h4><i class="dx-icon-image"></i> Upload Media</h4>
+                <hr />
+                <form method="post" asp-page-handler="UploadMedia" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label asp-for="MediaInput.EventId" class="form-label">Event *</label>
+                                @(Html.DevExtreme().SelectBoxFor(m => m.MediaInput.EventId)
+                                    .DataSource(Model.Events)
+                                    .ValueExpr("Value")
+                                    .DisplayExpr("Text")
+                                    .Placeholder("Select event")
+                                    .SearchEnabled(true))
+                                <span asp-validation-for="MediaInput.EventId" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label asp-for="MediaInput.AlbumId" class="form-label">Album (Optional)</label>
+                                @(Html.DevExtreme().SelectBoxFor(m => m.MediaInput.AlbumId)
+                                    .DataSource(Model.Albums)
+                                    .ValueExpr("Value")
+                                    .DisplayExpr("Text")
+                                    .Placeholder("Select album (optional)")
+                                    .SearchEnabled(true)
+                                    .ShowClearButton(true))
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label asp-for="MediaInput.MediaType" class="form-label">Media Type *</label>
+                                @(Html.DevExtreme().SelectBoxFor(m => m.MediaInput.MediaType)
+                                    .ID("mediaTypeSelect")
+                                    .DataSource(Model.MediaTypes)
+                                    .ValueExpr("Value")
+                                    .DisplayExpr("Text")
+                                    .Placeholder("Select media type")
+                                    .OnValueChanged("onMediaTypeChanged"))
+                                <span asp-validation-for="MediaInput.MediaType" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="MediaInput.File" class="form-label">Select File *</label>
+                                <div class="file-upload-container">
+                                    <input type="file" 
+                                           id="mediaFileInput" 
+                                           name="MediaInput.File" 
+                                           accept="image/*,video/*" 
+                                           class="form-control file-input"
+                                           onchange="onFileSelected(this)" />
+                                    <div class="file-upload-hint">
+                                        <i class="dx-icon-image"></i>
+                                        <span>Supports: JPG, PNG, GIF, WEBP, MP4, MOV, AVI, WEBM</span>
+                                    </div>
+                                </div>
+                                <span asp-validation-for="MediaInput.File" class="text-danger"></span>
+                                <div id="filePreview" class="file-preview mt-2"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label asp-for="MediaInput.GuestName" class="form-label">Guest Name</label>
+                                @(Html.DevExtreme().TextBoxFor(m => m.MediaInput.GuestName)
+                                    .Placeholder("Enter guest name")
+                                    .ShowClearButton(true))
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3" id="durationContainer" style="display: none;">
+                                <label asp-for="MediaInput.DurationSeconds" class="form-label">Duration (seconds) *</label>
+                                @(Html.DevExtreme().NumberBoxFor(m => m.MediaInput.DurationSeconds)
+                                    .ID("durationBox")
+                                    .Placeholder("Video duration")
+                                    .Min(1)
+                                    .Max(30)
+                                    .ShowSpinButtons(true))
+                                <small class="text-muted">Max 30 seconds for videos</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Visibility</label>
+                                @(Html.DevExtreme().SwitchFor(m => m.MediaInput.IsPublic)
+                                    .SwitchedOnText("Public")
+                                    .SwitchedOffText("Private"))
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="d-grid mt-4">
+                                @(Html.DevExtreme().Button()
+                                    .Text("Upload Media")
+                                    .Type(ButtonType.Success)
+                                    .StylingMode(ButtonStylingMode.Contained)
+                                    .Icon("upload")
+                                    .UseSubmitBehavior(true)
+                                    .Width("100%"))
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function onMediaTypeChanged(e) {
+        var durationContainer = document.getElementById("durationContainer");
+        // MediaTypeEnum: Image = 1, Video = 2
+        if (e.value === 2) {
+            durationContainer.style.display = "block";
+        } else {
+            durationContainer.style.display = "none";
+        }
+    }
+
+    function onFileSelected(input) {
+        var filePreview = document.getElementById("filePreview");
+        filePreview.innerHTML = "";
+
+        if (input.files && input.files.length > 0) {
+            var file = input.files[0];
+            var fileType = file.type;
+
+            if (fileType.startsWith("image/")) {
+                var reader = new FileReader();
+                reader.onload = function (event) {
+                    var img = document.createElement("img");
+                    img.src = event.target.result;
+                    img.className = "preview-image";
+                    filePreview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+
+                // Auto-select Image type
+                var mediaTypeSelectBox = $("#mediaTypeSelect").dxSelectBox("instance");
+                if (mediaTypeSelectBox) {
+                    mediaTypeSelectBox.option("value", 1);
+                }
+                document.getElementById("durationContainer").style.display = "none";
+            } else if (fileType.startsWith("video/")) {
+                var video = document.createElement("video");
+                video.className = "preview-video";
+                video.controls = true;
+
+                var reader = new FileReader();
+                reader.onload = function (event) {
+                    video.src = event.target.result;
+                    filePreview.appendChild(video);
+
+                    // Auto-detect video duration
+                    video.onloadedmetadata = function () {
+                        var duration = Math.ceil(video.duration);
+                        var durationBox = $("#durationBox").dxNumberBox("instance");
+                        if (durationBox) {
+                            durationBox.option("value", duration);
+                        }
+                    };
+                };
+                reader.readAsDataURL(file);
+
+                // Auto-select Video type and show duration field
+                var mediaTypeSelectBox = $("#mediaTypeSelect").dxSelectBox("instance");
+                if (mediaTypeSelectBox) {
+                    mediaTypeSelectBox.option("value", 2);
+                }
+                document.getElementById("durationContainer").style.display = "block";
+            }
+        }
+    }
+</script>
+
+<style>
+    .content-block {
+        margin: 20px;
+    }
+
+    .dx-card {
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .dx-card h4 {
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .dx-card h4 i {
+        margin-right: 8px;
+    }
+
+    .responsive-paddings {
+        padding: 20px;
+    }
+
+    .mb-3 {
+        margin-bottom: 15px;
+    }
+
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    hr {
+        margin: 15px 0;
+        border-color: #eee;
+    }
+
+    .media-upload-card {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+        border: 2px dashed #ccc;
+    }
+
+    .media-upload-card:hover {
+        border-color: #007bff;
+    }
+
+    .golden-book-card {
+        background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+        border: 2px solid #ffc107;
+    }
+
+    .golden-book-card:hover {
+        border-color: #e0a800;
+        box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+    }
+
+    .file-upload-container {
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        padding: 15px;
+        background: #fff;
+        transition: all 0.3s ease;
+    }
+
+    .file-upload-container:hover {
+        border-color: #007bff;
+        background: #f8f9fa;
+    }
+
+    .file-input {
+        margin-bottom: 10px;
+    }
+
+    .file-upload-hint {
+        text-align: center;
+        color: #888;
+        font-size: 0.85rem;
+    }
+
+    .file-upload-hint i {
+        margin-right: 5px;
+    }
+
+    .file-preview {
+        text-align: center;
+    }
+
+    .preview-image {
+        max-width: 200px;
+        max-height: 150px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .preview-video {
+        max-width: 300px;
+        max-height: 200px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .mt-4 {
+        margin-top: 1.5rem;
+    }
+
+    .roles-checkboxes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .role-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        padding: 8px 12px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+
+    .role-checkbox:hover {
+        border-color: #667eea;
+        background: #f8f9ff;
+    }
+
+    .role-checkbox input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+</style>

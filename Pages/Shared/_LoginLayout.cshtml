@@ -1,0 +1,67 @@
+﻿@using DevExtreme.AspNet.Mvc
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Authentication.Cookies
+@using Microsoft.AspNetCore.Authorization
+@using SmachotMemories.Models
+@using SmachotMemories.Models.Enums
+@* @inject IHttpContextAccessor HttpContextAccessor *@
+@attribute [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+@inject UserManager<User> userManager
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SmachotMemories</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/SmachotMemories.styles.css" asp-append-version="true" />
+
+    
+    <link href="~/css/devextreme/dx.fluent.custom-scheme.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/Site.css" />
+    <script src="~/js/devextreme/jquery.js"></script>
+    
+    <script src="~/js/devextreme/dx.all.js"></script>
+    
+    @* DevExtreme License - Replace YOUR_LICENSE_KEY with your actual license key if you have one *@
+    @* <script>DevExpress.config({ licenseKey: "YOUR_LICENSE_KEY" });</script> *@
+
+    <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
+    <script src="~/js/devextreme/aspnet/dx.aspnet.data.js"></script>
+
+    <script src="https://unpkg.com/devextreme-quill/dist/dx-quill.min.js"></script>
+
+    <script src="https://cdn.ckeditor.com/4.16.2/full/ckeditor.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/7.4.0/polyfill.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.1.1/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.2/FileSaver.min.js"></script>
+    <script src="js/languageDetector.js"></script>
+
+</head>
+<body>
+                        @RenderBody()
+   
+</body>
+
+</html>
+
+<style>
+    .menu-container .dx-treeview .dx-treeview-item .dx-icon{
+        display: inline-block;
+        width: auto !important;
+        padding-right: 5px;
+    }
+
+    .menu-container .dx-treeview .dx-treeview-node[aria-level="2"] .dx-treeview-item-content{
+        font-weight: normal;
+        padding: 0px 28px !important;
+    }
+
+    .dx-overlay-content {
+        background-color: white;
+    }
+</style>

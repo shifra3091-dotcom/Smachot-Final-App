@@ -1,0 +1,214 @@
+﻿ @page
+@using DevExtreme.AspNet.Mvc
+@using SmachotMemories.DTOs
+@using SmachotMemories.Models
+@model SmachotMemories.Pages.HallsModel
+@{
+}
+
+
+
+@(Html.DevExtreme().DataGrid<HallDto>()
+    .ID("halls")
+    .ElementAttr(new { @class = "dx-card wide-card" })
+    .DataSource(d => d.Mvc().Controller("Halls")
+                    .LoadAction("Load")
+                    .InsertAction("Insert")
+                    .UpdateAction("Update")
+                    .DeleteAction("Delete")
+                    .Key("HallId"))
+    .Editing(x => x
+                 .AllowAdding(true)
+                 .AllowDeleting(true)
+                 @* .AllowUpdating(true) *@
+                .Mode(GridEditMode.Popup)
+                .Popup(p => p.Title("Hall Info").ShowTitle(true).Width(700).Height(525)))
+    .ShowBorders(false)
+    .FilterRow(f => f.Visible(true))
+    .RemoteOperations(true)
+    .AllowColumnResizing(true)
+    .StateStoring(s => s.Enabled(true).StorageKey("halls"))
+    .FilterRow(filterRow => filterRow
+    .Visible(true)
+    .ApplyFilter(GridApplyFilterMode.Auto)
+    )   
+    .SearchPanel(searchPanel => searchPanel
+    .Visible(true)
+    .Placeholder("Search...")
+    ).HeaderFilter(headerFilter => headerFilter.Visible(true))
+    .Columns(columns =>
+    {
+        columns.AddFor(m => m.Name);
+        columns.AddFor(m => m.CreatedAt).DataType(GridColumnDataType.DateTime)
+              .FormItem(f => f.Visible(false));
+
+        columns.AddFor(m => m.OwnerUserId)
+              .Caption("Owner User")
+              .Lookup(lookup => lookup
+                  .DataSource(d => d.Mvc().Controller("Events").LoadAction("GetUsers").Key("Id"))
+                  .ValueExpr("Id")
+                  .DisplayExpr("Name"))
+              .CellTemplate(@<text>
+                                 <a style="margin-left: 5px" href="/UserDetails?OwnerUserId=[%- data.OwnerUserId%]">
+                                     [%- data.OwnerUserName%]
+                                 </a>
+                             </text>);
+        columns.Add()
+            .Caption("QR Code")
+            .DataField("QrCodeSource")
+            .AllowEditing(false)
+            .AllowFiltering(false)
+            .AllowSorting(false)
+            .Width(150)
+            .CellTemplate(@<text>
+                <div id="qr-cell-[%- data.HallId %]">
+                    [% if (data.QrCodeSource) { %]
+                        <img src="[%- data.QrCodeSource %]" alt="QR Code" style="width: 80px; height: 80px; cursor: pointer;" onclick="showQrCodePopup('[%- data.QrCodeSource %]')" />
+                    [% } else { %]
+                        <button class="dx-button dx-button-default" onclick="generateQrCode([%- data.HallId %])">
+                            <span class="dx-button-text">Generate QR Code</span>
+                        </button>
+                    [% } %]
+                </div>
+        </text>).FormItem(f => f.Visible(false));
+        columns.Add()
+            .Caption("Feedback")
+            .AllowEditing(false)
+            .AllowFiltering(false)
+            .AllowSorting(false)
+            .Width(100)
+            .CellTemplate(@<text>
+                <a href="/HallFeedback?HallId=[%- data.HallId%]" class="hall-feedback-link" title="View Hall Feedback">
+                    <i class="dx-icon-comment" style="font-size: 18px;"></i> Feedback
+                </a>
+       </text>).FormItem(f => f.Visible(false));
+        columns.Add()
+            .Caption("Details")
+            .AllowEditing(false)
+            .AllowFiltering(false)
+            .AllowSorting(false)
+            .Width(100)
+            .CellTemplate(@<text>
+                <a href="/HallDetails?HallId=[%- data.HallId%]" class="hall-details-link" title="View Hall Details">
+                    <i class="dx-icon-home" style="font-size: 18px;"></i> Edit
+                </a>
+            </text>).FormItem(f => f.Visible(false));
+        columns.Add()
+            .Caption("Total Events")
+            .AllowEditing(false)
+            .AllowFiltering(false)
+            .AllowSorting(false)
+            .Width(150)
+            .CellTemplate(@<text>
+        <a href="/Events?HallId=[%- data.HallId %]" class="total-events-link" title="View Events">
+            [%- data.TotalEvents %] Events
+        </a>
+    </text>).FormItem(f => f.Visible(false));
+    })
+    .Paging(p => p.PageSize(10))
+    .Pager(p => p
+        .ShowPageSizeSelector(true)
+        .AllowedPageSizes(new[] { 5, 10, 20 })
+        .ShowInfo(true)
+    )
+    .Toolbar(toolbar =>
+    {
+        toolbar.Items(items =>
+        {
+            items.Add()
+            .Name("searchPanel");
+            items.Add()
+       .Location(ToolbarItemLocation.After)
+       .Widget(w =>
+           w.Button()
+               .Icon("add")
+               .Text("Add New Row")
+               .OnClick("onAddRow")
+        );
+            items.Add()
+           .Location(ToolbarItemLocation.After)
+               .Widget(w =>
+                   w.Button()
+                    .Icon("export")
+                    .Text("Export")
+                        .OnClick("onExporting")
+                 );
+        });
+
+    })
+)
+
+<style>
+    .hall-details-link,
+    .hall-feedback-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .hall-details-link:hover,
+    .hall-feedback-link:hover {
+        color: #764ba2;
+    }
+</style>
+
+<script>
+    function generateQrCode(hallId) {
+        $.ajax({
+            url: '/api/Halls/GenerateQrCode',
+            type: 'POST',
+            data: { hallId: hallId },
+            success: function (response) {
+                if (response.success) {
+                    // Refresh the grid to show the new QR code
+                    var dataGrid = $("#halls").dxDataGrid("instance");
+                    dataGrid.refresh();
+                    DevExpress.ui.notify("QR Code generated successfully!", "success", 3000);
+                } else {
+                    DevExpress.ui.notify("Failed to generate QR Code", "error", 3000);
+                }
+            },
+            error: function (xhr, status, error) {
+                DevExpress.ui.notify("Error generating QR Code: " + error, "error", 3000);
+            }
+        });
+    }
+
+    function showQrCodePopup(qrCodeSource) {
+        DevExpress.ui.dialog.custom({
+            title: "QR Code",
+            messageHtml: '<div style="text-align: center;"><img src="' + qrCodeSource + '" alt="QR Code" style="width: 300px; height: 300px;" /></div>',
+            buttons: [{
+                text: "Close",
+                onClick: function () {
+                    return true;
+                }
+            }]
+        }).show();
+    }
+
+    function onExporting() {
+        var grid = DevExpress.ui.dxDataGrid.getInstance(document.getElementById('uiText'));
+        var workbook = new ExcelJS.Workbook();
+        var worksheet = workbook.addWorksheet('Main sheet');
+
+        DevExpress.excelExporter.exportDataGrid({
+            worksheet: worksheet,
+            component: grid
+        }).then(function () {
+            workbook.xlsx.writeBuffer().then(function (buffer) {
+                saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'DataGrid.xlsx');
+            });
+        });
+    }
+
+    function onAddRow() {
+        const dataGrid = $("#halls").dxDataGrid("instance");
+        dataGrid.addRow();
+    }
+
+</script>

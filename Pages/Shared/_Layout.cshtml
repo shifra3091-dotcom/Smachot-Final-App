@@ -1,0 +1,306 @@
+﻿@using DevExtreme.AspNet.Mvc
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Authentication.Cookies
+@using Microsoft.AspNetCore.Authorization
+@using SmachotMemories.Models
+@using SmachotMemories.Models.Enums
+@* @inject IHttpContextAccessor HttpContextAccessor *@
+@attribute [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+@inject UserManager<User> userManager
+
+@{
+    User currentUser = null;
+    if (User.Identity.IsAuthenticated)
+    {
+        currentUser = await userManager.GetUserAsync(User);
+    }
+    // else
+    //     Context.Response.Redirect("/Login");
+
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SmachotMemories</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/SmachotMemories.styles.css" asp-append-version="true" />
+
+    
+    <link href="~/css/devextreme/dx.fluent.custom-scheme.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/Site.css" />
+    <script src="~/js/devextreme/jquery.js"></script>
+    
+    <script src="~/js/devextreme/dx.all.js"></script>
+    
+    @* DevExtreme License - Replace YOUR_LICENSE_KEY with your actual license key if you have one *@
+    @* <script>DevExpress.config({ licenseKey: "YOUR_LICENSE_KEY" });</script> *@
+
+    <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
+    <script src="~/js/devextreme/aspnet/dx.aspnet.data.js"></script>
+
+    <script src="https://unpkg.com/devextreme-quill/dist/dx-quill.min.js"></script>
+
+    <script src="https://cdn.ckeditor.com/4.16.2/full/ckeditor.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/7.4.0/polyfill.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.1.1/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.2/FileSaver.min.js"></script>
+    <script src="js/languageDetector.js"></script>
+
+</head>
+<body class="dx-viewport">
+    <div id="app-side-nav-outer-toolbar">
+        <div class="layout-header">
+            @(Html.DevExtreme().Toolbar()
+                        .Items(items =>
+                        {
+                            items.Add()
+                            .Widget(w => w
+                            .Button()
+                            .Icon("menu")
+                            .OnClick("SmachotMemories.onMenuButtonClick")
+                            )
+                            .Location(ToolbarItemLocation.Before)
+                            .CssClass("menu-button");
+                            items.Add()
+                            .Html("<div>SmachotMemories</div>")
+                            .Location(ToolbarItemLocation.Before)
+                            .CssClass("header-title");
+                            items.Add()
+                            .Html($"<div>{currentUser}</div>")
+                            .Location(ToolbarItemLocation.After)
+                            .CssClass("header-title");
+                        })
+                        )
+        </div>
+        <div class="layout-body layout-body-hidden">
+            @(Html.DevExtreme().Drawer()
+                        .ID("layout-drawer")
+                        .Position(DrawerPosition.Left)
+                        .Opened(new JS("SmachotMemories.restoreDrawerOpened()"))
+                        .Content(@<text>
+                <div id="layout-drawer-scrollview" class="with-footer">
+                    <div class="content">
+                        @RenderBody()
+                    </div>
+                    
+                </div>
+            </text>)
+                        .Template(new TemplateName("navigation-menu"))
+                        )
+        </div>
+    </div>
+
+    @using (Html.DevExtreme().NamedTemplate("navigation-menu"))
+    {
+    <div class="menu-container dx-swatch-additional">
+
+        @functions {
+            string GetUrl(string pageName) => Url.Page(pageName);
+            string GetCurrentUrl() => Url.Page(ViewContext.RouteData.Values["page"].ToString());
+            bool IsCurrentUrl(string pageName) => GetUrl(pageName) == GetCurrentUrl();
+        }
+
+        @(
+                Html.DevExtreme().TreeView()
+                .Items(items =>
+                {
+                    items.Add()
+                    .Text("UI Settings")
+                    .Icon("preferences")
+                    .Items(subItems =>
+                    {
+                        subItems.Add()
+                    .Text("UI Texts")
+                    .Icon("contains")
+                    .Option("path", GetUrl("/UITexts"))
+                    .Selected(IsCurrentUrl("/UITexts"));
+                    })
+                    .Expanded(IsCurrentUrl("/UITexts"));
+                   
+                    items.Add()
+                    .Text("Store")
+                    .Icon("folder")
+                    .Items(subItems =>
+                    {
+                        subItems.Add()
+                    .Text("Customers")
+                    .Icon("user")
+                    .Option("path", GetUrl("/Customers"))
+                    .Selected(IsCurrentUrl("/Customers"));
+                        subItems.Add()
+                    .Text("Events")
+                    .Icon("event")
+                    .Option("path", GetUrl("/Events"))
+                    .Selected(IsCurrentUrl("/Events"));
+                        subItems.Add()
+                    .Text("Event Types")
+                    .Icon("tags")
+                    .Option("path", GetUrl("/EventTypes"))
+                    .Selected(IsCurrentUrl("/EventTypes"));
+                        subItems.Add()
+                    .Text("Halls")
+                    .Icon("home")
+                    .Option("path", GetUrl("/Halls"))
+                    .Selected(IsCurrentUrl("/Halls"));
+                    })
+                    .Expanded(IsCurrentUrl("/Customers") || IsCurrentUrl("/Events") || IsCurrentUrl("/Halls") || IsCurrentUrl("/EventTypes"));
+
+                    items.Add()
+                    .Text("Notification")
+                    .Icon("bell")
+                    .Option("path", GetUrl("/Notifications"))
+                    .Selected(IsCurrentUrl("/Notifications"));
+                  
+
+                    items.Add()
+                    .Text("Experiments")
+                    .Icon("toolbox")
+                    .Option("path", GetUrl("/Experiments"))
+                    .Selected(IsCurrentUrl("/Experiments"));
+                  
+                    items.Add()
+                    .Text("Logout")
+                    .Icon("panelright")
+                    .Option("path", GetUrl("/Logout"))
+                    .Selected(IsCurrentUrl("/Logout"));
+                })
+
+                .ExpandEvent(TreeViewExpandEvent.Click)
+                .SelectionMode(NavSelectionMode.Single)
+                .SelectedExpr("selected")
+                .FocusStateEnabled(false)
+                .Width(250)
+                .OnItemClick("SmachotMemories.onTreeViewItemClick")
+                )
+
+    </div>
+        }
+
+    <script>
+
+        var SmachotMemories = (function () {
+
+            var DRAWER_OPENED_KEY = "SmachotMemories-drawer-opened";
+
+            var breakpoints = {
+                xSmallMedia: window.matchMedia("(max-width: 599.99px)"),
+                smallMedia: window.matchMedia("(min-width: 600px) and (max-width: 959.99px)"),
+                mediumMedia: window.matchMedia("(min-width: 960px) and (max-width: 1279.99px)"),
+                largeMedia: window.matchMedia("(min-width: 1280px)")
+            };
+
+            function getDrawer() {
+                return $("#layout-drawer").dxDrawer("instance");
+            }
+
+            function restoreDrawerOpened() {
+                var isLarge = breakpoints.largeMedia.matches;
+                if (!isLarge)
+                    return false;
+
+                var state = sessionStorage.getItem(DRAWER_OPENED_KEY);
+                if (state === null)
+                    return isLarge;
+
+                return state === "true";
+            }
+
+            function saveDrawerOpened() {
+                sessionStorage.setItem(DRAWER_OPENED_KEY, getDrawer().option("opened"));
+            }
+
+            function updateDrawer() {
+                // var isXSmall = breakpoints.xSmallMedia.matches,
+                //     isLarge = breakpoints.largeMedia.matches;
+
+                // getDrawer().option({
+                //     openedStateMode: isLarge ? "shrink" : "overlap",
+                //     revealMode: isXSmall ? "slide" : "expand",
+                //     minSize: isXSmall ? 0 : 300,
+                //     shading: !isLarge,
+                // });
+            }
+
+            function init() {
+                $("#layout-drawer-scrollview").dxScrollView({ direction: "vertical" });
+
+                $.each(breakpoints, function (_, size) {
+                    size.addListener(function (e) {
+                        if (e.matches)
+                            updateDrawer();
+                    });
+                });
+
+                updateDrawer();
+
+                $('.layout-body').removeClass('layout-body-hidden');
+            }
+
+            function navigate(url, delay) {
+                if (url)
+                    setTimeout(function () { location.href = url }, delay);
+            }
+
+            function onMenuButtonClick() {
+                getDrawer().toggle();
+                saveDrawerOpened();
+            }
+
+            function onTreeViewItemClick(e) {
+                var drawer = getDrawer();
+                var savedOpened = restoreDrawerOpened();
+                var actualOpened = drawer.option("opened");
+
+                if (!actualOpened) {
+                    drawer.show();
+                } else {
+                    var willHide = !savedOpened || !breakpoints.largeMedia.matches;
+                    var url = e.itemData.path;
+
+                    if (willHide)
+                        drawer.hide();
+
+                    // Always navigate to the URL, even if it's the current page
+                    navigate(url, willHide ? 400 : 0);
+                }
+            }
+
+            return {
+                init: init,
+                restoreDrawerOpened: restoreDrawerOpened,
+                onMenuButtonClick: onMenuButtonClick,
+                onTreeViewItemClick: onTreeViewItemClick
+            };
+        })();
+
+        document.addEventListener("DOMContentLoaded", function documentReady() {
+            this.removeEventListener("DOMContentLoaded", documentReady);
+            SmachotMemories.init();
+        });
+    </script>
+</body>
+
+</html>
+
+<style>
+    .menu-container .dx-treeview .dx-treeview-item .dx-icon{
+        display: inline-block;
+        width: auto !important;
+        padding-right: 5px;
+    }
+
+    .menu-container .dx-treeview .dx-treeview-node[aria-level="2"] .dx-treeview-item-content{
+        font-weight: normal;
+        padding: 0px 28px !important;
+    }
+
+    .dx-overlay-content {
+        background-color: white;
+    }
+
+    
+</style></style>

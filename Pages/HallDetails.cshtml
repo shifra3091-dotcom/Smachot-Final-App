@@ -1,0 +1,495 @@
+﻿@page
+@model SmachotMemories.Pages.HallDetailsModel
+@{
+    ViewData["Title"] = "Hall Details";
+}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<div class="hall-details-container">
+    <h1 class="page-title">Hall Details</h1>
+
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+    {
+        <div class="alert alert-success">@Model.SuccessMessage</div>
+    }
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-error">@Model.ErrorMessage</div>
+    }
+
+    @if (Model.CurrentHall != null)
+    {
+        <!-- QR Code Section -->
+        <div class="qr-code-section">
+            <div class="section-header">
+                <h2>QR Code</h2>
+            </div>
+            <div class="qr-code-content">
+                @if (!string.IsNullOrEmpty(Model.CurrentHall.QrCodeSource))
+                {
+                    <img id="qrCodeImage" src="@Model.CurrentHall.QrCodeSource" alt="Hall QR Code" class="qr-code-image" />
+                    <p class="qr-code-description">Scan this QR code to access events at this hall</p>
+                    <div class="qr-code-actions">
+                        <button type="button" class="btn btn-download" onclick="downloadQrCodePdf('@Html.Raw(Model.CurrentHall.Name.Replace("'", "\\'"))')">
+                            <i class="dx-icon-download"></i> Download PDF
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <div class="no-qr-code">
+                        <i class="dx-icon-image" style="font-size: 48px; color: #ccc;"></i>
+                        <p>No QR Code generated yet</p>
+                        <form method="post" asp-page-handler="GenerateQrCode" asp-route-HallId="@Model.HallId">
+                            <button type="submit" class="btn btn-generate">
+                                <i class="dx-icon-plus"></i> Generate QR Code
+                            </button>
+                        </form>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- View Mode -->
+        <div id="viewMode" class="hall-info-section">
+            <div class="section-header">
+                <h2>Hall Information</h2>
+                <button type="button" class="btn-edit" onclick="toggleEditMode(true)">
+                    <i class="dx-icon-edit"></i> Edit
+                </button>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Hall ID:</span>
+                <span class="info-value">@Model.CurrentHall.HallId</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Name:</span>
+                <span class="info-value">@Model.CurrentHall.Name</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Owner:</span>
+                <span class="info-value">@Model.CurrentHall.OwnerUser?.Name (@Model.CurrentHall.OwnerUser?.Email)</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Created At:</span>
+                <span class="info-value">@Model.CurrentHall.CreatedAt.ToString("yyyy-MM-dd HH:mm")</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Total Events:</span>
+                <span class="info-value">@Model.CurrentHall.Events.Count</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Total Feedbacks:</span>
+                <span class="info-value">@Model.CurrentHall.Feedbacks.Count</span>
+            </div>
+        </div>
+
+        <!-- Edit Mode -->
+        <div id="editMode" class="hall-info-section" style="display: none;">
+            <div class="section-header">
+                <h2>Edit Hall</h2>
+                <button type="button" class="btn-cancel" onclick="toggleEditMode(false)">
+                    Cancel
+                </button>
+            </div>
+
+            <form method="post" asp-page-handler="UpdateHall" asp-route-HallId="@Model.HallId">
+                <div class="info-row">
+                    <span class="info-label">Hall ID:</span>
+                    <span class="info-value readonly">@Model.CurrentHall.HallId</span>
+                </div>
+                <div class="info-row editable">
+                    <span class="info-label">Name:</span>
+                    <input type="text" asp-for="Name" class="form-control-inline" required />
+                </div>
+                <div class="info-row editable">
+                    <span class="info-label">Owner:</span>
+                    <select asp-for="OwnerUserId" class="form-control-inline">
+                        @foreach (var owner in Model.AvailableOwners)
+                        {
+                            <option value="@owner.Id">@owner.Name (@owner.Email)</option>
+                        }
+                    </select>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Created At:</span>
+                    <span class="info-value readonly">@Model.CurrentHall.CreatedAt.ToString("yyyy-MM-dd HH:mm")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Total Events:</span>
+                    <span class="info-value readonly">@Model.CurrentHall.Events.Count</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Total Feedbacks:</span>
+                    <span class="info-value readonly">@Model.CurrentHall.Feedbacks.Count</span>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="back-link">
+            <a href="/Halls" class="btn-back">
+                <i class="dx-icon-arrowleft"></i> Back to Halls
+            </a>
+        </div>
+    }
+</div>
+
+<style>
+    .hall-details-container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        color: #333;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .alert {
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .alert-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .hall-info-section {
+        background: #fff;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #667eea;
+    }
+
+    .section-header h2 {
+        font-size: 1.3rem;
+        color: #333;
+        margin: 0;
+    }
+
+    .btn-edit {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .btn-edit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-cancel {
+        padding: 8px 16px;
+        background: #f5f5f5;
+        color: #666;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .btn-cancel:hover {
+        background: #e0e0e0;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .info-row:last-of-type {
+        border-bottom: none;
+    }
+
+    .info-row.editable {
+        background-color: #f8f9ff;
+        margin: 0 -15px;
+        padding: 14px 15px;
+        border-radius: 6px;
+        border-bottom: none;
+        margin-bottom: 8px;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #555;
+        min-width: 140px;
+    }
+
+    .info-value {
+        color: #333;
+        flex: 1;
+        text-align: right;
+    }
+
+    .info-value.readonly {
+        color: #888;
+    }
+
+    .form-control-inline {
+        flex: 1;
+        max-width: 300px;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        text-align: right;
+        transition: border-color 0.2s ease;
+    }
+
+    .form-control-inline:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    }
+
+    .form-actions {
+        margin-top: 25px;
+        text-align: center;
+    }
+
+    .btn {
+        padding: 12px 30px;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .back-link {
+        text-align: center;
+        margin-top: 30px;
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background-color: #f5f5f5;
+        color: #333;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .btn-back:hover {
+        background-color: #e0e0e0;
+        color: #333;
+    }
+
+    .qr-code-section {
+        background: #fff;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .qr-code-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+    }
+
+    .qr-code-image {
+        width: 300px;
+        height: 300px;
+        border: 3px solid #667eea;
+        border-radius: 12px;
+        padding: 10px;
+        background: white;
+    }
+
+    .qr-code-description {
+        margin-top: 15px;
+        color: #666;
+        font-size: 0.95rem;
+    }
+
+    .no-qr-code {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 30px;
+        color: #888;
+    }
+
+    .no-qr-code p {
+        margin: 15px 0;
+        font-size: 1rem;
+    }
+
+    .btn-generate {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .btn-generate:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .qr-code-actions {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    .btn-download {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .btn-download:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(40, 167, 69, 0.4);
+    }
+
+    @@media (max-width: 600px) {
+        .hall-details-container {
+            padding: 20px 15px;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+        }
+
+        .info-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .info-value {
+            text-align: left;
+        }
+
+        .form-control-inline {
+            max-width: 100%;
+            text-align: left;
+        }
+
+        .section-header {
+            flex-direction: column;
+            gap: 15px;
+            align-items: flex-start;
+        }
+    }
+</style>
+
+<script>
+    function toggleEditMode(edit) {
+        document.getElementById('viewMode').style.display = edit ? 'none' : 'block';
+        document.getElementById('editMode').style.display = edit ? 'block' : 'none';
+    }
+
+    function downloadQrCodePdf(hallName) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        const imgElement = document.getElementById('qrCodeImage');
+        const imgData = imgElement.src;
+
+        // Add title
+        doc.setFontSize(20);
+        doc.setTextColor(102, 126, 234);
+        doc.text(hallName, 105, 30, { align: 'center' });
+
+        // Add subtitle
+        doc.setFontSize(12);
+        doc.setTextColor(100, 100, 100);
+        doc.text('Scan this QR code to access events at this hall', 105, 40, { align: 'center' });
+
+        // Add QR code image (centered)
+        const imgWidth = 100;
+        const imgHeight = 100;
+        const xPosition = (210 - imgWidth) / 2; // A4 width is 210mm
+        doc.addImage(imgData, 'PNG', xPosition, 50, imgWidth, imgHeight);
+
+        // Add footer
+        doc.setFontSize(10);
+        doc.setTextColor(150, 150, 150);
+        doc.text('Generated by Smachot Memories', 105, 170, { align: 'center' });
+
+        // Download the PDF
+        doc.save(hallName.replace(/[^a-zA-Z0-9]/g, '_') + '_QRCode.pdf');
+    }
+</script>

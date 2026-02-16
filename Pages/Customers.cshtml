@@ -1,0 +1,334 @@
+﻿@page
+@using DevExtreme.AspNet.Mvc
+@using SmachotMemories.Models
+@using SmachotMemories.Models.Enums
+@model SmachotMemories.Pages.CustomersModel
+@{
+    ViewData["Title"] = "Customers";
+}
+
+<h1 class="page-title">Customers</h1>
+
+<div style="margin-bottom: 20px;">
+    <label for="roleFilter">Filter by Role:</label>
+    <div id="roleFilter" style="width: 200px;"></div>
+</div>
+
+@(Html.DevExtreme().DataGrid<User>()
+    .ID("usersGrid")
+    .ElementAttr(new { @class = "dx-card wide-card" })
+    .DataSource(d => d.Mvc().Controller("Users")
+                    .LoadAction("Load")
+                    .InsertAction("Insert")
+                    @* .UpdateAction("Update") *@
+                    .DeleteAction("Delete")
+                    .Key("Id"))
+    .Editing(x => x
+                 .AllowAdding(true)
+                 .AllowDeleting(true)
+                 @* .AllowUpdating(true) *@
+                .Mode(GridEditMode.Popup)
+                .Popup(p => p.Title("User Info").ShowTitle(true).Width(500).Height(400)))
+    .ShowBorders(false)
+    .FilterRow(f => f.Visible(true))
+    .RemoteOperations(true)
+    .AllowColumnResizing(true)
+    .StateStoring(s => s.Enabled(true).StorageKey("customers1"))
+    .FilterRow(filterRow => filterRow
+        .Visible(true)
+        .ApplyFilter(GridApplyFilterMode.Auto)
+    )
+    .SearchPanel(searchPanel => searchPanel
+        .Visible(true)
+        .Placeholder("Search...")
+    )
+    .HeaderFilter(headerFilter => headerFilter.Visible(true))
+    .Columns(columns =>
+    {
+        columns.AddFor(m => m.Name);
+        columns.AddFor(m => m.Email);
+        columns.AddFor(m => m.Phone);
+        columns.AddFor(m => m.Roles)
+            .Caption("Roles")
+            .CellTemplate(@<text>
+                <span><%- formatRoles(data.Roles) %></span>
+            </text>)
+            .EditCellTemplate(@<text>
+                <div id="rolesTagBox"></div>
+            </text>);
+        columns.AddFor(m => m.CreatedAt)
+            .DataType(GridColumnDataType.DateTime)
+            .AllowEditing(false);
+        columns.Add()
+            .Caption("Details")
+            .AllowEditing(false)
+            .AllowFiltering(false)
+            .AllowSorting(false)
+            .Width(100)
+            .CellTemplate(@<text>
+                <a href="/UserDetails?OwnerUserId=[%- data.Id%]" class="user-details-link" title="View User Details">
+                    <i class="dx-icon-user" style="font-size: 18px;"></i> Edit
+                </a>
+            </text>);
+    })
+    .Paging(p => p.PageSize(10))
+    .Pager(p => p
+        .ShowPageSizeSelector(true)
+        .AllowedPageSizes(new[] { 5, 10, 20 })
+        .ShowInfo(true)
+    )
+    .Toolbar(toolbar =>
+    {
+        toolbar.Items(items =>
+        {
+            items.Add()
+                .Name("searchPanel");
+            items.Add()
+                .Location(ToolbarItemLocation.After)
+                .Widget(w =>
+                    w.Button()
+                        .Icon("add")
+                        .Text("Add New User")
+                        .OnClick("showAddUserModal")
+                );
+            items.Add()
+                .Location(ToolbarItemLocation.After)
+                .Widget(w =>
+                    w.Button()
+                        .Icon("export")
+                        .Text("Export")
+                        .OnClick("onExporting")
+                );
+        });
+    })
+    .OnEditorPreparing("onEditorPreparing")
+)
+
+<!-- Add User Modal -->
+<div id="addUserModal" class="modal" tabindex="-1" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.4);">
+    <div style="background:#fff; margin:5% auto; padding:20px; border-radius:8px; width:400px; position:relative;">
+        <h2>Add New User</h2>
+        <form id="addUserForm">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" class="form-control" name="UserName" required />
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" class="form-control" name="Email" required />
+            </div>
+            <div class="form-group">
+                <label>Phone</label>
+                <input type="text" class="form-control" name="Phone" required />
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" class="form-control" name="Password" required />
+            </div>
+            <div class="form-group">
+                <label>Roles</label>
+                <div id="rolesTagBox"></div>
+            </div>
+            <div style="margin-top:15px; text-align:right;">
+                <button type="button" onclick="hideAddUserModal()" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+
+    .page-title {
+        font-size: 1.8rem;
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    .user-details-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .user-details-link:hover {
+        color: #764ba2;
+    }
+    .modal .form-group { margin-bottom: 12px; }
+    .modal label { font-weight: 500; }
+    .modal input, .modal select { width: 100%; padding: 6px; border-radius: 4px; border: 1px solid #ccc; }
+</style>
+
+<script>
+    var roleMap = {
+        1: "EventOwner",
+        2: "HallOwner"
+    };
+
+    function formatRoles(rolesValue) {
+        if (!rolesValue || rolesValue === 0) return "None";
+        var roles = [];
+        for (var key in roleMap) {
+            if ((rolesValue & key) === parseInt(key)) {
+                roles.push(roleMap[key]);
+            }
+        }
+        return roles.length > 0 ? roles.join(", ") : "None";
+    }
+
+    function onEditorPreparing(e) {
+        if (e.dataField === "Roles" && e.parentType === "dataRow") {
+            e.editorName = "dxTagBox";
+            e.editorOptions = {
+                dataSource: [
+                    { Id: 1, Name: "EventOwner" },
+                    { Id: 2, Name: "HallOwner" }
+                ],
+                valueExpr: "Id",
+                displayExpr: "Name",
+                value: getRolesArray(e.value),
+                onValueChanged: function(args) {
+                    var combined = args.value.reduce(function(acc, val) {
+                        return acc | val;
+                    }, 0);
+                    e.setValue(combined);
+                }
+            };
+        }
+    }
+
+    function getRolesArray(rolesValue) {
+        if (!rolesValue || rolesValue === 0) return [];
+        var roles = [];
+        for (var key in roleMap) {
+            if ((rolesValue & key) === parseInt(key)) {
+                roles.push(parseInt(key));
+            }
+        }
+        return roles;
+    }
+
+    function onExporting() {
+        var grid = DevExpress.ui.dxDataGrid.getInstance(document.getElementById('usersGrid'));
+        var workbook = new ExcelJS.Workbook();
+        var worksheet = workbook.addWorksheet('Users');
+
+        DevExpress.excelExporter.exportDataGrid({
+            worksheet: worksheet,
+            component: grid
+        }).then(function () {
+            workbook.xlsx.writeBuffer().then(function (buffer) {
+                saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'Users.xlsx');
+            });
+        });
+    }
+
+    // Modal logic
+    function showAddUserModal() {
+        document.getElementById('addUserModal').style.display = 'block';
+    }
+    function hideAddUserModal() {
+        document.getElementById('addUserModal').style.display = 'none';
+        document.getElementById('addUserForm').reset();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('addUserForm').onsubmit = function(e) {
+        e.preventDefault();
+        var form = e.target;
+        var roles = $("#rolesTagBox").dxTagBox("instance").option("value");
+        var data = {
+            UserName: form.UserName.value,
+            Email: form.Email.value,
+            Phone: form.Phone.value,
+            Password: form.Password.value,
+            Roles: roles
+        };
+            fetch('/api/Users/CreateUser', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(resp => resp.json())
+            .then(result => {
+                if(result.success) {
+                    hideAddUserModal();
+                    DevExpress.ui.notify('User created successfully', 'success', 2000);
+                    $("#usersGrid").dxDataGrid("instance").refresh();
+                } else {
+                    DevExpress.ui.notify(result.message || 'Error creating user', 'error', 3000);
+                }
+            })
+            .catch(() => {
+                DevExpress.ui.notify('Error creating user', 'error', 3000);
+            });
+        };
+    });
+
+        function showAddUserModal() {
+        document.getElementById('addUserModal').style.display = 'block';
+        // Initialize dxTagBox for roles
+        $("#rolesTagBox").dxTagBox({
+            items: [
+                { Id: 1, Name: "EventOwner" },
+                { Id: 2, Name: "HallOwner" }
+            ],
+            valueExpr: "Id",
+            displayExpr: "Name",
+            placeholder: "Select roles...",
+            showSelectionControls: true,
+            multiline: false,
+            searchEnabled: false,
+            width: "100%",
+            dropDownOptions: {
+                position: {
+                    of: "#rolesTagBox", // Align dropdown with the TagBox
+                    my: "left top", // Dropdown opens below the TagBox
+                    at: "left bottom", // Align bottom of dropdown with top of TagBox
+                    collision: "fit flip"
+                },
+                boundary: "#addUserModal", // Restrict dropdown within modal boundaries
+                container: "#addUserModal" // Ensure dropdown is rendered inside the modal
+            }
+        });
+    }
+    function hideAddUserModal() {
+        document.getElementById('addUserModal').style.display = 'none';
+        document.getElementById('addUserForm').reset();
+        // Dispose TagBox to avoid duplicate initialization
+        if ($("#rolesTagBox").dxTagBox("instance")) {
+            $("#rolesTagBox").dxTagBox("dispose");
+        }
+    }
+    function onAddRow() {
+        // No longer used
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the role filter dropdown
+        $("#roleFilter").dxSelectBox({
+            items: [
+                { Id: 0, Name: "All" },
+                { Id: 1, Name: "EventOwner" },
+                { Id: 2, Name: "HallOwner" }
+            ],
+            valueExpr: "Id",
+            displayExpr: "Name",
+            value: 0, // Default to "All"
+            placeholder: "Select Role...",
+            width: 200, // Set fixed width
+            onValueChanged: function(e) {
+                var grid = $("#usersGrid").dxDataGrid("instance");
+                if (e.value === 0) {
+                    grid.clearFilter();
+                } else {
+                    grid.filter(["Roles", "=", e.value]);
+                }
+            }
+        });
+    });
+</script>

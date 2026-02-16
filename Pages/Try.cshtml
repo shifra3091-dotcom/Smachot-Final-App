@@ -1,0 +1,19 @@
+﻿@page
+@model SmachotMemories.Pages.TryModel
+@{
+}
+
+
+
+<form method="post">
+    <input asp-for="Name"/>
+    <button type="submit" asp-page-handler="NewFunc">name button</button>
+    <button type="button" onclick="hello()">hello</button>
+    <button type="submit">name button</button>
+</form>
+
+<script>
+    function hello(){
+        alert("hello");
+    }
+</script>

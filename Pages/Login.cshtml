@@ -1,0 +1,46 @@
+﻿@page
+@using DevExtreme.AspNet.Mvc
+@model SmachotMemories.Pages.LoginModel
+@{
+    Layout = "_LoginLayout";
+
+}
+
+
+<div style="width:100%">
+
+    <form method="post" class="form" style="display:block;width:400px;margin-left:auto;margin-right:auto;height:300px;">
+
+        <div class="dx-fieldset">
+            <div class="dx-field">
+                <div class="dx-field-label">Email</div>
+                <div class="dx-field-value">
+                    @(Html.DevExtreme().TextBox()
+                                        .Name("Email"))
+                </div>
+            </div>
+            <div class="dx-field">
+                <div class="dx-field-label">Password</div>
+                <div class="dx-field-value">
+                    @(Html.DevExtreme().TextBox()
+                                        .Name("Password")
+                                        .Mode(TextBoxMode.Password) // Set initial mode to password
+
+                                        )
+                </div>
+            </div>
+
+            <div class="dx-field">
+                <div class="dx-field-value">
+                    @(Html.DevExtreme().Button()
+                                        .Text("Login")
+                                        .Width(70)
+                                        .UseSubmitBehavior(true))
+                </div>
+            </div>
+
+
+
+        </div>
+    </form>
+</div>

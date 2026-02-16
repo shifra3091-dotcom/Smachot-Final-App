@@ -1,0 +1,22 @@
+﻿@page
+@model SmachotMemories.Pages.VenueQRModel
+@{
+}
+
+
+<h2>QR Code של האולם</h2>
+<h3>
+    CurrentLanguage: @Model.CurrentLanguage, IsRTL: @Model.IsRTL
+</h3>
+
+@if (Model.QrCodeImage != null)
+{
+    <div>
+        <img src="data:image/png;base64,@Convert.ToBase64String(Model.QrCodeImage)" alt="QR Code" />
+        <p>@Model.QrUrl</p>
+    </div>
+}
+else
+{
+    <p>טוען...</p>
+}

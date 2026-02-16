@@ -1,0 +1,185 @@
+﻿@page
+@using DevExtreme.AspNet.Mvc
+@using SmachotMemories.DTOs
+@using SmachotMemories.Models
+@using SmachotMemories.Models.Enums
+@model SmachotMemories.Pages.NotificationModel
+@{
+}
+
+<div style="margin-bottom: 15px;">
+    @(Html.DevExtreme().ButtonGroup()
+        .ID("statusButtonGroup")
+        .SelectionMode(ButtonGroupSelectionMode.Single)
+        .Items(items =>
+        {
+            items.Add().Text("This Day");
+            items.Add().Text("This Week");
+            items.Add().Text("This Month");
+        })
+        .SelectedItemKeys(new[] { "This Day" })
+        .KeyExpr("text")
+        .OnSelectionChanged("onStatusChanged")
+    )
+</div>
+
+@(Html.DevExtreme().DataGrid<EventDto>()
+    .ID("eventNot")
+    .ElementAttr(new { @class = "dx-card wide-card" })
+    .DataSource(d => d.Mvc().Controller("Notification")
+                    .LoadAction("Load")
+                .LoadParams(new { notStat = new JS("function () { return notStat;} ") })
+                    @* .InsertAction("Insert") *@
+                    .Key("EventId"))
+    .ShowBorders(false)
+    .FilterRow(f => f.Visible(true))
+    .RemoteOperations(true)
+    .AllowColumnResizing(true)
+    .ColumnAutoWidth(true)
+    @* .StateStoring(s => s.Enabled(true).StorageKey("notifi")) *@
+    .FilterRow(filterRow => filterRow
+    .Visible(true)
+    .ApplyFilter(GridApplyFilterMode.Auto)
+    )
+    .SearchPanel(searchPanel => searchPanel
+    .Visible(true)
+    .Placeholder("Search...")
+    ).HeaderFilter(headerFilter => headerFilter.Visible(true))
+    .Columns(columns =>
+    {
+        columns.AddFor(m => m.EventName)
+            .CellTemplate(@<text>
+                <a href="/Events?eventId=[%- data.EventId %]" style="color: #0066cc; text-decoration: none;">
+                    [%- data.EventName %]
+                </a>
+            </text>);
+        columns.AddFor(m => m.OwnerUserId)
+        .Caption("Owner User")
+        .CellTemplate(@<text>
+                           <a style="margin-left: 5px" href="/UserDetails?OwnerUserId=[%- data.OwnerUserId%]">
+                               [%- data.OwnerUserName%]
+                           </a>
+                       </text>);
+        columns.AddFor(m => m.DownloadStatus)
+            .Caption("Download Status")
+            .AllowEditing(false)
+              .FormItem(f => f.Visible(false))
+            .CellTemplate(@<text>
+                <div class="download-status-cell">
+                    [% if (data.DownloadStatus === @((int)DownloadStatusEnum.FullyDownloaded)) { %]
+                        <span class="download-badge fully-downloaded" title="Last downloaded: [%- data.LastDownloadedAt ? new Date(data.LastDownloadedAt).toLocaleString() : 'N/A' %]">
+                            <i class="dx-icon-check"></i> Fully Downloaded
+                        </span>
+                    [% } else if (data.DownloadStatus === @((int)DownloadStatusEnum.PartiallyDownloaded)) { %]
+                        <span class="download-badge partially-downloaded" title="Last downloaded: [%- data.LastDownloadedAt ? new Date(data.LastDownloadedAt).toLocaleString() : 'N/A' %]">
+                            <i class="dx-icon-warning"></i> Partially Downloaded
+                        </span>
+                    [% } else { %]
+                        <span class="download-badge not-downloaded">
+                            <i class="dx-icon-close"></i> Not Downloaded
+                        </span>
+                    [% } %]
+                </div>
+            </text>);
+       
+    })
+    .Paging(p => p.PageSize(10))
+    .Pager(p => p
+        .ShowPageSizeSelector(true)
+        .AllowedPageSizes(new[] { 5, 10, 20 })
+        .ShowInfo(true)
+    )
+    .Toolbar(toolbar =>
+    {
+        toolbar.Items(items =>
+        {
+            items.Add()
+            .Name("searchPanel");
+            items.Add()
+       .Location(ToolbarItemLocation.After);
+     
+            items.Add()
+           .Location(ToolbarItemLocation.After)
+               .Widget(w =>
+                   w.Button()
+                    .Icon("export")
+                    .Text("Export")
+                        .OnClick("onExporting")
+                 );
+        });
+
+    })
+)
+
+<style>
+    .download-status-cell {
+        display: flex;
+        align-items: center;
+    }
+
+    .download-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 16px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    .download-badge.fully-downloaded {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+    }
+
+    .download-badge.partially-downloaded {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+    }
+
+    .download-badge.not-downloaded {
+        background: #e5e7eb;
+        color: #6b7280;
+    }
+
+    .download-badge i {
+        font-size: 14px;
+    }
+</style>
+
+<script>
+    var notStat = "This Day";
+
+   
+
+    function onStatusChanged(e) {
+        if (e.addedItems.length > 0) {
+            var selectedText = e.addedItems[0].text;
+            notStat = selectedText;
+            var grid = $("#eventNot").dxDataGrid("instance");
+            grid.refresh();
+        }
+    }
+
+    function onExporting() {
+        var grid = DevExpress.ui.dxDataGrid.getInstance(document.getElementById('uiText'));
+        var workbook = new ExcelJS.Workbook();
+        var worksheet = workbook.addWorksheet('Main sheet');
+
+        DevExpress.excelExporter.exportDataGrid({
+            worksheet: worksheet,
+            component: grid
+        }).then(function () {
+            workbook.xlsx.writeBuffer().then(function (buffer) {
+                saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'DataGrid.xlsx');
+            });
+        });
+    }
+
+    function onAddRow() {
+        const dataGrid = $("#event").dxDataGrid("instance");
+        dataGrid.addRow();
+    }
+
+</script>

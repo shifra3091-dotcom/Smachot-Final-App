@@ -1,0 +1,130 @@
+@page
+@using DevExtreme.AspNet.Mvc
+@using SmachotMemories.Models
+@model SmachotMemories.Pages.EventTypesModel
+@{
+    ViewData["Title"] = "Event Types";
+}
+
+<h1>Event Types</h1>
+<p>Manage event types such as Wedding, Engagement, Bar Mitzvah, etc.</p>
+
+<div id="eventTypes"></div>
+
+<script>
+    $(function () {
+        $("#eventTypes").dxDataGrid({
+            dataSource: DevExpress.data.AspNet.createStore({
+                key: "EventTypeId",
+                loadUrl: "/api/EventTypes/Load",
+                insertUrl: "/api/EventTypes/Insert",
+                updateUrl: "/api/EventTypes/Update",
+                deleteUrl: "/api/EventTypes/Delete"
+            }),
+            columns: [
+                { dataField: "EventTypeId", visible: false, allowEditing: false },
+                { dataField: "EventTypeNameKey", caption: "Event Type Name Key", validationRules: [{ type: "required", message: "Event Type Name is required" }] },
+                { dataField: "DefaultAlbumSCount", caption: "Default Albums Count" },
+                {
+                    dataField: "ReadyAlbums",
+                    caption: "Album Names",
+                    customizeText: function(cellInfo) {
+                        return cellInfo.value ? cellInfo.value.map(a => a.albumName).join(", ") : "No albums";
+                    },
+                    allowEditing: false
+                }
+            ],
+            editing: {
+                allowAdding: true,
+                allowDeleting: true,
+                allowUpdating: true,
+                mode: "popup"
+            },
+            showBorders: false,
+            filterRow: { visible: true },
+            remoteOperations: true,
+            allowColumnResizing: true,
+            searchPanel: {
+                visible: true,
+                placeholder: "Search..."
+            },
+            headerFilter: { visible: true },
+            paging: { pageSize: 10 },
+            pager: {
+                showPageSizeSelector: true,
+                allowedPageSizes: [5, 10, 20],
+                showInfo: true
+            },
+            toolbar: {
+                items: [
+                    "searchPanel",
+                    {
+                        location: "after",
+                        widget: "dxButton",
+                        options: {
+                            icon: "add",
+                            text: "Add Event Type",
+                            onClick: function () {
+                                $("#eventTypes").dxDataGrid("instance").addRow();
+                            }
+                        }
+                    }
+                ]
+            },
+            masterDetail: {
+                enabled: true,
+                template: function (container, options) {
+                    var eventTypeId = options.data.EventTypeId;
+                    var grid = $("<div>").dxDataGrid({
+                        dataSource: DevExpress.data.AspNet.createStore({
+                            key: "ReadyAlbumId",
+                            loadUrl: "/api/ReadyAlbums/Load",
+                            insertUrl: "/api/ReadyAlbums/Insert?eventTypeId=" + eventTypeId,
+                            updateUrl: "/api/ReadyAlbums/Update",
+                            deleteUrl: "/api/ReadyAlbums/Delete",
+                            loadParams: { eventTypeId: eventTypeId }
+                        }),
+                        columns: [
+                            { dataField: "AlbumName", caption: "Album Name" },
+                            { dataField: "Family", caption: "Family", dataType: "boolean" },
+                            { dataField: "Times", caption: "Times", dataType: "boolean" },
+                            { dataField: "IsDefault", caption: "Is Default", dataType: "boolean" }
+                        ],
+                        editing: {
+                            allowAdding: true,
+                            allowUpdating: true,
+                            allowDeleting: true,
+                            mode: "row"
+                        },
+                        showBorders: true
+                    });
+                    container.append(grid);
+                }
+            }
+        });
+    });
+</script>
+
+<style>
+    .badge {
+        display: inline-block;
+        padding: 0.25em 0.4em;
+        font-size: 75%;
+        font-weight: 700;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 0.25rem;
+    }
+    .badge-secondary {
+        color: #fff;
+        background-color: #6c757d;
+    }
+    .me-1 {
+        margin-right: 0.25rem;
+    }
+    .text-muted {
+        color: #6c757d;
+    }
+</style>
