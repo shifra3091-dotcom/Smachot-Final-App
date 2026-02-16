@@ -1,0 +1,156 @@
+.hall-feedback-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    background-color: #f5f5f5;
+}
+
+.hall-feedback-form {
+    background-color: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    width: 100%;
+}
+
+.hall-feedback-title {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 30px;
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    text-align: right;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #666;
+    font-weight: 500;
+}
+
+.rating-slider {
+    position: relative;
+    height: 96px;
+    margin-top: 6px;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+}
+
+.rating-slider:active {
+    cursor: grabbing;
+}
+
+.rating-track {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 62px;
+    height: 2px;
+    background-color: #f5b300;
+    border-radius: 999px;
+}
+
+.rating-star-thumb {
+    position: absolute;
+    top: 8px;
+    left: var(--rating-percent);
+    transform: translateX(-50%);
+    font-size: 52px;
+    line-height: 1;
+    color: #f5b300;
+    filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.05));
+}
+
+.rating-knob {
+    position: absolute;
+    top: 49px;
+    left: var(--rating-percent);
+    transform: translateX(-50%);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #f5b300;
+    color: #333;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.form-input,
+.form-textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+    text-align: right;
+    direction: rtl;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: #333;
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+    color: #999;
+    text-align: right;
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 15px;
+    background-color: #000;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+}
+
+.submit-btn:hover {
+    background-color: #333;
+}
+
+.submit-btn:active {
+    background-color: #000;
+    transform: scale(0.98);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .hall-feedback-form {
+        padding: 30px 20px;
+    }
+
+    .hall-feedback-title {
+        font-size: 24px;
+    }
+}
