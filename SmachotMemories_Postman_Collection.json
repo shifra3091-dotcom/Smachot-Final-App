@@ -1,0 +1,219 @@
+{
+  "info": {
+    "name": "SmachotMemories API",
+    "description": "API endpoints for SmachotMemories project",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Halls",
+      "item": [
+        {
+          "name": "Create Hall",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "Name",
+                  "value": "???? ???????",
+                  "type": "text",
+                  "description": "?? ????? (????)"
+                },
+                {
+                  "key": "OwnerName",
+                  "value": "??? ???",
+                  "type": "text",
+                  "description": "?? ??? ????? (????)"
+                },
+                {
+                  "key": "Phone",
+                  "value": "054-1234567",
+                  "type": "text",
+                  "description": "????? ??? ????? (????)"
+                },
+                {
+                  "key": "Email",
+                  "value": "moshe@example.com",
+                  "type": "text",
+                  "description": "?????? ??? ????? (????)"
+                },
+                {
+                  "key": "Password",
+                  "value": "Password123!",
+                  "type": "text",
+                  "description": "????? ???? ????? (????)"
+                },
+                {
+                  "key": "HallAddress",
+                  "value": "???? ???? 10, ???????",
+                  "type": "text",
+                  "description": "????? ????? (?????????)"
+                },
+                {
+                  "key": "HallPhone",
+                  "value": "02-1234567",
+                  "type": "text",
+                  "description": "????? ????? (?????????)"
+                },
+                {
+                  "key": "AllowedEventTypeIds[0]",
+                  "value": "1",
+                  "type": "text",
+                  "description": "???? ??? ????? ????? (?????)"
+                },
+                {
+                  "key": "AllowedEventTypeIds[1]",
+                  "value": "2",
+                  "type": "text",
+                  "description": "???? ??? ????? ??? (?? ?????)"
+                },
+                {
+                  "key": "AllowedEventTypeIds[2]",
+                  "value": "3",
+                  "type": "text",
+                  "description": "???? ??? ????? ????? (????)"
+                },
+                {
+                  "key": "HallImage",
+                  "type": "file",
+                  "src": [],
+                  "description": "????? ????? (?????????)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "https://localhost:7168/api/app/halls",
+              "protocol": "https",
+              "host": ["localhost"],
+              "port": "7168",
+              "path": ["api", "app", "halls"]
+            },
+            "description": "????? ???? ??? ?? ????? ????? ??????? ??????"
+          }
+        },
+        {
+          "name": "Get All Halls",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://localhost:7168/api/app/halls",
+              "protocol": "https",
+              "host": ["localhost"],
+              "port": "7168",
+              "path": ["api", "app", "halls"]
+            },
+            "description": "???? ????? ?? ??????? ?? ???? ??????? ??????"
+          }
+        },
+        {
+          "name": "Get Hall By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://localhost:7168/api/app/halls/1",
+              "protocol": "https",
+              "host": ["localhost"],
+              "port": "7168",
+              "path": ["api", "app", "halls", "1"]
+            },
+            "description": "???? ???? ???? ?????? ??? ID"
+          }
+        },
+        {
+          "name": "Get Hall Event Types",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://localhost:7168/api/app/halls/1/event-types",
+              "protocol": "https",
+              "host": ["localhost"],
+              "port": "7168",
+              "path": ["api", "app", "halls", "1", "event-types"]
+            },
+            "description": "???? ????? ???? ??????? ?????? ????? ??????"
+          }
+        },
+        {
+          "name": "Update Hall Event Types",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[1, 2, 3]"
+            },
+            "url": {
+              "raw": "https://localhost:7168/api/app/halls/1/event-types",
+              "protocol": "https",
+              "host": ["localhost"],
+              "port": "7168",
+              "path": ["api", "app", "halls", "1", "event-types"]
+            },
+            "description": "????? ???? ??????? ?????? ????? ??????"
+          }
+        },
+        {
+          "name": "Get Hall Events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://localhost:7168/api/app/halls/1/events",
+              "protocol": "https",
+              "host": ["localhost"],
+              "port": "7168",
+              "path": ["api", "app", "halls", "1", "events"]
+            },
+            "description": "???? ?? ???????? ?? ???? ??????"
+          }
+        },
+        {
+          "name": "Get Hall Past Events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://localhost:7168/api/app/halls/1/events/past",
+              "protocol": "https",
+              "host": ["localhost"],
+              "port": "7168",
+              "path": ["api", "app", "halls", "1", "events", "past"]
+            },
+            "description": "???? ??????? ???????? ?? ???? ??????"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Event Types",
+      "item": [
+        {
+          "name": "Get Event Types With Albums",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://localhost:7168/api/app/event/event-types-with-albums",
+              "protocol": "https",
+              "host": ["localhost"],
+              "port": "7168",
+              "path": ["api", "app", "event", "event-types-with-albums"]
+            },
+            "description": "???? ?? ???? ???????? ?? ??????? ??????"
+          }
+        }
+      ]
+    }
+  ]
+}
